@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WiFi Speed Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 50px;
+    }
+    #speed {
+      font-size: 24px;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>WiFi Speed Test</h1>
+  <button id="start-test">Start Test</button>
+  <div id="speed">Click the button to test your WiFi speed</div>
+
+  <script>
+    async function testWiFiSpeed() {
+      // URL of a test file to measure download speed
+      const testFileUrl = "https://speed.hetzner.de/100MB.bin";
+      // Record the start time of the download
+      const startTime = performance.now();
+      // File size in bytes (100MB in this case)
+      const fileSizeBytes = 100 * 1024 * 1024;
+
+      try {
+        // Fetch the test file with no caching to ensure accurate measurement
+        const response = await fetch(testFileUrl, { method: "GET", cache: "no-store" });
+        const reader = response.body.getReader();
+        let receivedBytes = 0; // Track total bytes downloaded
+
+        while (true) {
+          // Read data from the stream in chunks
+          const { done, value } = await reader.read();
+          if (done) break; // Exit the loop when no more data is available
+          receivedBytes += value.length; // Accumulate the size of each chunk
+        }
+
+        // Record the end time of the download
+        const endTime = performance.now();
+        // Calculate the duration of the download in seconds
+        const durationSeconds = (endTime - startTime) / 1000;
+        // Calculate the download speed in Mbps (megabits per second)
+        const speedMbps = ((receivedBytes * 8) / (1024 * 1024)) / durationSeconds;
+
+        // Display the calculated WiFi speed
+        document.getElementById("speed").innerText = `WiFi Speed: ${speedMbps.toFixed(2)} Mbps`;
+      } catch (error) {
+        // Handle errors and display an error message
+        document.getElementById("speed").innerText = "Error testing WiFi speed: " + error.message;
+      }
+    }
+
+    // Attach an event listener to the button to start the speed test
+    document.getElementById("start-test").addEventListener("click", () => {
+      // Display a loading message while the test is running
+      document.getElementById("speed").innerText = "Testing... Please wait...";
+      testWiFiSpeed(); // Call the function to start the test
+    });
+  </script>
+</body>
+</html>
