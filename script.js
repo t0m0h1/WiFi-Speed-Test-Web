@@ -1,31 +1,41 @@
-async function testWiFiSpeed() {
-    const testFileUrl = "https://speed.hetzner.de/100MB.bin";
-    const startTime = performance.now();
-    const fileSizeBytes = 100 * 1024 * 1024;
-  
-    try {
-      const response = await fetch(testFileUrl, { method: "GET", cache: "no-store" });
-      const reader = response.body.getReader();
-      let receivedBytes = 0;
-  
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        receivedBytes += value.length;
-      }
-  
-      const endTime = performance.now();
-      const durationSeconds = (endTime - startTime) / 1000;
-      const speedMbps = ((receivedBytes * 8) / (1024 * 1024)) / durationSeconds;
-  
-      document.getElementById("speed").innerText = `WiFi Speed: ${speedMbps.toFixed(2)} Mbps`;
-    } catch (error) {
-      document.getElementById("speed").innerText = "Error testing WiFi speed: " + error.message;
-    }
-  }
-  
-  document.getElementById("start-test").addEventListener("click", () => {
-    document.getElementById("speed").innerText = "Testing... Please wait...";
+document.getElementById('start-test').addEventListener('click', () => {
     testWiFiSpeed();
   });
+  
+  async function testWiFiSpeed() {
+    const speedElement = document.getElementById('speed');
+    speedElement.textContent = "Testing...";
+  
+    try {
+      const testURL = "https://api.example.com/speed-test"; // Replace with a valid API endpoint for speed testing.
+      
+      // Check if CORS is an issue by using a proxy or handling headers.
+      const response = await fetch(testURL, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          // Add any additional headers required by the API.
+        }
+      });
+  
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+  
+      const data = await response.json();
+      
+      // Process the speed test data
+      const downloadSpeed = data.downloadSpeed;
+      const uploadSpeed = data.uploadSpeed;
+  
+      speedElement.textContent = `Download Speed: ${downloadSpeed} Mbps, Upload Speed: ${uploadSpeed} Mbps`;
+    } catch (error) {
+      // Handle possible errors, including CORS issues or network failure
+      if (error.message.includes("CORS")) {
+        speedElement.textContent = "CORS error: Unable to fetch speed data from the server.";
+      } else {
+        speedElement.textContent = `Error: ${error.message}`;
+      }
+    }
+  }
   
